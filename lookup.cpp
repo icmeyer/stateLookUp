@@ -5,6 +5,7 @@
 
 std::map<std::string, std::string> abbrev2state = {
         {"al", "alabama"},
+        {"ak", "alaska"},
         {"ar", "arkansas"},
         {"az", "arizona"},
         {"ca", "california"},
@@ -64,6 +65,7 @@ std::map<std::string, std::string> abbrev2state = {
 // Make a reverse map
 std::map<std::string, std::string> state2abbrev = {
         {"alabama", "al"},
+        {"alaska", "ak"},
         {"arkansas", "ar"},
         {"arizona", "az"},
         {"california", "ca"},
