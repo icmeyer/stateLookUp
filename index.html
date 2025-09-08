@@ -1,40 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>State Lookup</title>
-</head>
-<body>
-    <h1>State/Abbreviation Lookup</h1>
-    <input type="text" id="stateInput" placeholder="Enter state or abbreviation">
-    <button id="lookupButton">Lookup</button>
-    <p id="result"></p>
-
-    <script src="lookup.js"></script>
-    <script>
-        Module.onRuntimeInitialized = function() {
-            const input = document.getElementById('stateInput');
-            const button = document.getElementById('lookupButton');
-            const result = document.getElementById('result');
-
-            function lookupState() {
-                var inputValue = input.value;
-                var lookupResult = Module.lookupState(inputValue);
-                result.textContent = lookupResult;
-            }
-
-            // Listen for button clicks
-            button.addEventListener('click', lookupState);
-
-            // Listen for 'Enter' key in the input field
-            input.addEventListener('keydown', function(event) {
-                if (event.key === 'Enter') {
-                    event.preventDefault(); // Prevent form submission if within a form
-                    lookupState();
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>State Lookup</title>
+    </head>
+    <body>
+        <h1>State/Abbreviation Lookup</h1>
+        <table>
+            <tr>
+                <th>State</th>
+                <td><input type="text" id="stateInput"></td>
+                <td><p id="name"></p></td>
+            </tr>
+            <tr>
+                <th>Abbrev.</th>
+                <td><input type="text" id="abbrevInput"></td>
+                <td><p id="abbrev"></p></td>
+            </tr>
+            <tr>
+                <th>FIPS</th>
+                <td><input type="text" id="fipsInput"></td>
+                <td><p id="fips"></p></td>
+            </tr>
+        </table>
+        <button id="lookupButton">Lookup</button>
+        <script src="lookup.js"></script>
+        <script>
+            Module.onRuntimeInitialized = function() {
+                const stateInput = document.getElementById('stateInput');
+                const abbrevInput = document.getElementById('abbrevInput');
+                const fipsInput = document.getElementById('fipsInput');
+                const button = document.getElementById('lookupButton');
+                
+                const nameResult = document.getElementById('name');
+                const abbrevResult = document.getElementById('abbrev');
+                const fipsResult = document.getElementById('fips');
+                
+                function lookupState() {
+                    var lookupResult = '';
+                    if (stateInput.value.trim() !== '') {
+                        lookupResult = Module.lookupStateByName(stateInput.value);
+                    } else if (abbrevInput.value.trim() !== '') {
+                        lookupResult = Module.lookupStateByAbbreviation(abbrevInput.value);
+                    } else if (fipsInput.value.trim() !== '') {
+                        lookupResult = Module.lookupStateByFips(fipsInput.value);
+                    }
+                    
+                    var parts = lookupResult.split('|');
+                    if (parts.length >= 3) {
+                        nameResult.textContent = parts[0];
+                        abbrevResult.textContent = parts[1];
+                        fipsResult.textContent = parts[2];
+                    } else {
+                        nameResult.textContent = lookupResult;
+                        abbrevResult.textContent = '';
+                        fipsResult.textContent = '';
+                    }
                 }
-            });
-        };
-    </script>
-</body>
+                
+                button.addEventListener('click', lookupState);
+                
+                stateInput.addEventListener('keydown', function(event) {
+                    if (event.key === 'Enter') {
+                        event.preventDefault();
+                        lookupState();
+                    }
+                });
+                abbrevInput.addEventListener('keydown', function(event) {
+                    if (event.key === 'Enter') {
+                        event.preventDefault();
+                        lookupState();
+                    }
+                });
+                fipsInput.addEventListener('keydown', function(event) {
+                    if (event.key === 'Enter') {
+                        event.preventDefault();
+                        lookupState();
+                    }
+                });
+            };
+        </script>
+    </body>
 </html>

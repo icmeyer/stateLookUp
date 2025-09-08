@@ -2,6 +2,7 @@
 #include <string>
 #include <map>
 #include <algorithm>
+#include <cctype>
 
 std::map<std::string, std::string> abbrev2state = {
         {"al", "alabama"},
@@ -62,65 +63,77 @@ std::map<std::string, std::string> abbrev2state = {
         {"vi", "u.s. virgin islands"}
 };
 
-// Make a reverse map
-std::map<std::string, std::string> state2abbrev = {
-        {"alabama", "al"},
-        {"alaska", "ak"},
-        {"arkansas", "ar"},
-        {"arizona", "az"},
-        {"california", "ca"},
-        {"colorado", "co"},
-        {"connecticut", "ct"},
-        {"delaware", "de"},
-        {"florida", "fl"},
-        {"georgia", "ga"},
-        {"hawaii", "hi"},
-        {"iowa", "ia"},
-        {"idaho", "id"},
-        {"illinois", "il"},
-        {"indiana", "in"},
-        {"kansas", "ks"},
-        {"kentucky", "ky"},
-        {"louisiana", "la"},
-        {"massachusetts", "ma"},
-        {"maryland", "md"},
-        {"maine", "me"},
-        {"michigan", "mi"},
-        {"minnesota", "mn"},
-        {"missouri", "mo"},
-        {"mississippi", "ms"},
-        {"montana", "mt"},
-        {"north carolina", "nc"},
-        {"north dakota", "nd"},
-        {"nebraska", "ne"},
-        {"new hampshire", "nh"},
-        {"new jersey", "nj"},
-        {"new mexico", "nm"},
-        {"nevada", "nv"},
-        {"new york", "ny"},
-        {"ohio", "oh"},
-        {"oklahoma", "ok"},
-        {"oregon", "or"},
-        {"pennsylvania", "pa"},
-        {"rhode island", "ri"},
-        {"south carolina", "sc"},
-        {"south dakota", "sd"},
-        {"tennessee", "tn"},
-        {"texas", "tx"},
-        {"utah", "ut"},
-        {"virginia", "va"},
-        {"vermont", "vt"},
-        {"washington", "wa"},
-        {"wisconsin", "wi"},
-        {"west virginia", "wv"},
-        {"wyoming", "wy"},
-        {"district of columbia", "dc"},
-        {"american samoa", "as"},
-        {"guam", "gu"},
-        {"northern mariana islands", "mp"},
-        {"puerto rico", "pr"},
-        {"u.s. virgin islands", "vi"}
+std::map<std::string, std::string> fips2state  = {
+        {"01", "alabama"},
+        {"02", "alaska"},
+        {"04", "arizona"},
+        {"05", "arkansas"},
+        {"06", "california"},
+        {"08", "colorado"},
+        {"09", "connecticut"},
+        {"10", "delaware"},
+        {"11", "district of columbia"},
+        {"12", "florida"},
+        {"13", "georgia"},
+        {"15", "hawaii"},
+        {"16", "idaho"},
+        {"17", "illinois"},
+        {"18", "indiana"},
+        {"19", "iowa"},
+        {"20", "kansas"},
+        {"21", "kentucky"},
+        {"22", "louisiana"},
+        {"23", "maine"},
+        {"24", "maryland"},
+        {"25", "massachusetts"},
+        {"26", "michigan"},
+        {"27", "minnesota"},
+        {"28", "mississippi"},
+        {"29", "missouri"},
+        {"30", "montana"},
+        {"31", "nebraska"},
+        {"32", "nevada"},
+        {"33", "new hampshire"},
+        {"34", "new jersey"},
+        {"35", "new mexico"},
+        {"36", "new york"},
+        {"37", "north carolina"},
+        {"38", "north dakota"},
+        {"39", "ohio"},
+        {"40", "oklahoma"},
+        {"41", "oregon"},
+        {"42", "pennsylvania"},
+        {"44", "rhode island"},
+        {"45", "south carolina"},
+        {"46", "south dakota"},
+        {"47", "tennessee"},
+        {"48", "texas"},
+        {"49", "utah"},
+        {"50", "vermont"},
+        {"51", "virginia"},
+        {"53", "washington"},
+        {"54", "west virginia"},
+        {"55", "wisconsin"},
+        {"56", "wyoming"},
 };
+
+std::map<std::string, std::string> createState2Abbrev() {
+    std::map<std::string, std::string> state2abbrev;
+    for (const auto &kv : abbrev2state) {
+        state2abbrev[kv.second] = kv.first;  
+    }
+    return state2abbrev;
+}
+std::map<std::string, std::string> state2abbrev = createState2Abbrev();
+
+std::map<std::string, std::string> createAbbrev2Fips() {
+    std::map<std::string, std::string> abbrev2fips;
+    for (const auto &kv : fips2state) {
+        abbrev2fips[state2abbrev[kv.second]] = kv.first;
+    }
+    return abbrev2fips;
+}
+std::map<std::string, std::string> abbrev2fips = createAbbrev2Fips();
 
 std::string capitalizeFirstLetter(std::string input) {
     // Capitalize first letter of each word
@@ -132,28 +145,27 @@ std::string capitalizeFirstLetter(std::string input) {
     return input;
 }
 
-std::string lookupState(std::string input) {
+std::string lookupStateByName(std::string input) {
     std::string state;
+    std::string abbrev;
+    std::string fips;
     
     // Convert input to lowercase
     std::transform(input.begin(), input.end(), input.begin(), ::tolower);
     
-    // Check if input is an abbreviation
-    if (abbrev2state.find(input) != abbrev2state.end()) {
-        state = abbrev2state[input];
-        return capitalizeFirstLetter(state);
-    }
-    
     // Check if input is a state name
     if (state2abbrev.find(input) != state2abbrev.end()) {
-        state = state2abbrev[input];
-        std::transform(state.begin(), state.end(), state.begin(), ::toupper);
-        return state;
+        abbrev = state2abbrev[input];
+        fips = abbrev2fips[abbrev];
+
+        state = capitalizeFirstLetter(state);
+        std::transform(abbrev.begin(), abbrev.end(), abbrev.begin(), ::tolower);
+        return state + "|" + abbrev + "|" + fips;
     }
     
-    return "Not found";
+    return "State|Not|Found";
 }
 
 EMSCRIPTEN_BINDINGS(module) {
-    emscripten::function("lookupState", &lookupState);
+    emscripten::function("lookupStateByName", &lookupStateByName);
 }
